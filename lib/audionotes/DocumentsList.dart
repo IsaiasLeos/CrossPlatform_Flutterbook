@@ -2,27 +2,27 @@ import "package:flutter/material.dart";
 import 'package:flutter_slidable/flutter_slidable.dart';
 import "package:scoped_model/scoped_model.dart";
 
-import 'AudioNotesModel.dart' show AudioNote, AudioNotesModel, audioNotesModel;
+import 'DocumentsModel.dart' show Document, DocumentsModel, documentsModel;
 
-/// The AudioNotes List sub-screen.
-class AudioNotesList extends StatelessWidget {
+/// The Document List sub-screen.
+class DocumentsList extends StatelessWidget {
   Widget build(BuildContext inContext) {
-    print("-- AudioNotesList.build()");
-    return ScopedModel<AudioNotesModel>(
-        model: audioNotesModel,
-        child: ScopedModelDescendant<AudioNotesModel>(
-            builder: (BuildContext inContext, Widget inChild, AudioNotesModel inModel) {
+    print("-- DocumentList.build()");
+    return ScopedModel<DocumentsModel>(
+        model: documentsModel,
+        child: ScopedModelDescendant<DocumentsModel>(
+            builder: (BuildContext inContext, Widget inChild, DocumentsModel inModel) {
           return Scaffold(
-            // Add AudioNote.
+            // Add Document.
             floatingActionButton: FloatingActionButton(
                 child: Icon(Icons.add, color: Colors.white), onPressed: () async {}),
             body: ListView.builder(
-                itemCount: audioNotesModel.entityList.length,
+                itemCount: documentsModel.entityList.length,
                 itemBuilder: (BuildContext inBuildContext, int inIndex) {
-                  AudioNote note = audioNotesModel.entityList[inIndex];
-                  // Determine note background color, default is white
+                  Document document = documentsModel.entityList[inIndex];
+                  // Determine document background color, default is white
                   Color color = Colors.white;
-                  switch (note.color) {
+                  switch (document.color) {
                     case "red":
                       color = Colors.red;
                       break;
@@ -58,9 +58,9 @@ class AudioNotesList extends StatelessWidget {
                               elevation: 8,
                               color: color,
                               child: ListTile(
-                                  title: Text("${note.title}"),
-                                  subtitle: Text("${note.content}"),
-                                  // Edit existing note.
+                                  title: Text("${document.title}"),
+                                  subtitle: Text("${document.content}"),
+                                  // Edit existing document.
                                   onTap: () async {}))));
                 }),
           );

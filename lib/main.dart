@@ -1,7 +1,7 @@
 import "dart:io";
 
 import "package:flutter/material.dart";
-import 'package:inclasswork/audionotes/AudioNotes.dart';
+import 'package:inclasswork/audionotes/Documents.dart';
 import "package:path_provider/path_provider.dart";
 
 import 'appointments/Appointments.dart';
@@ -40,6 +40,6 @@ class FlutterBook extends StatelessWidget {
                       Tab(icon: Icon(Icons.android), text: "Audio Notes")
                     ])),
                 body: TabBarView(
-                    children: [Appointments(), Contacts(), Notes(), Tasks(), AudioNotes()]))));
+                    children: [Appointments(), Contacts(), Notes(), Tasks(), Documents()]))));
   }
 }
