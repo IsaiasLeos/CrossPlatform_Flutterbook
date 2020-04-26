@@ -1,73 +1,127 @@
+import 'package:file_picker/file_picker.dart';
 import "package:flutter/material.dart";
-import 'package:flutter_slidable/flutter_slidable.dart';
-import "package:scoped_model/scoped_model.dart";
-
-import 'DocumentsModel.dart' show Document, DocumentsModel, documentsModel;
+import 'package:open_file/open_file.dart';
 
 /// The Document List sub-screen.
-class DocumentsList extends StatelessWidget {
-  Widget build(BuildContext inContext) {
-    print("-- DocumentList.build()");
-    return ScopedModel<DocumentsModel>(
-        model: documentsModel,
-        child: ScopedModelDescendant<DocumentsModel>(
-            builder: (BuildContext inContext, Widget inChild, DocumentsModel inModel) {
-          return Scaffold(
-            // Add Document.
-            floatingActionButton: FloatingActionButton(
-                child: Icon(Icons.add, color: Colors.white), onPressed: () async {
-                documentsModel.entityBeingEdited = Document();
-                documentsModel.setColor(null);
-                documentsModel.setStackIndex(1);
-            }),
-            body: ListView.builder(
-                itemCount: documentsModel.entityList.length,
-                itemBuilder: (BuildContext inBuildContext, int inIndex) {
-                  Document document = documentsModel.entityList[inIndex];
-                  // Determine document background color, default is white
-                  Color color = Colors.white;
-                  switch (document.color) {
-                    case "red":
-                      color = Colors.red;
-                      break;
-                    case "green":
-                      color = Colors.green;
-                      break;
-                    case "blue":
-                      color = Colors.blue;
-                      break;
-                    case "yellow":
-                      color = Colors.yellow;
-                      break;
-                    case "grey":
-                      color = Colors.grey;
-                      break;
-                    case "purple":
-                      color = Colors.purple;
-                      break;
-                  }
-                  return Container(
-                      padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
-                      child: Slidable(
-                          delegate: SlidableDrawerDelegate(),
-                          actionExtentRatio: .25,
-                          secondaryActions: [
-                            IconSlideAction(
-                                caption: "Delete",
-                                color: Colors.red,
-                                icon: Icons.delete,
-                                onTap: () {})
-                          ],
-                          child: Card(
-                              elevation: 8,
-                              color: color,
-                              child: ListTile(
-                                  title: Text("${document.title}"),
-                                  subtitle: Text("${document.content}"),
-                                  // Edit existing document.
-                                  onTap: () async {}))));
-                }),
-          );
-        }));
+class DocumentsList extends StatefulWidget {
+  _DocumentsListState createState() => new _DocumentsListState();
+}
+
+class _DocumentsListState extends State<DocumentsList> {
+  String _fileName;
+  String _path;
+  Map<String, String> _paths;
+  String _extension;
+  bool _loadingPath = false;
+  bool _multiPick = false;
+  FileType _pickingType;
+  TextEditingController _controller = new TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(() => _extension = _controller.text);
+  }
+
+  void _openFileExplorer() async {
+    setState(() => _loadingPath = true);
+    try {
+      if (_multiPick) {
+        _path = null;
+        _paths = await FilePicker.getMultiFilePath(
+            type: _pickingType,
+            allowedExtensions: (_extension?.isNotEmpty ?? false)
+                ? _extension?.replaceAll(' ', '')?.split(',')
+                : null);
+      } else {
+        _paths = null;
+        _path = await FilePicker.getFilePath(
+            type: _pickingType,
+            allowedExtensions: (_extension?.isNotEmpty ?? false)
+                ? _extension?.replaceAll(' ', '')?.split(',')
+                : null);
+      }
+    } on Exception catch (e) {
+      print("Unsupported operation" + e.toString());
+    }
+    if (!mounted) return;
+    setState(() {
+      _loadingPath = false;
+      _fileName =
+          _path != null ? _path.split('/').last : _paths != null ? _paths.keys.toString() : '...';
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      body: new Center(
+          child: new Padding(
+        padding: const EdgeInsets.only(left: 10.0, right: 10.0),
+        child: new SingleChildScrollView(
+          child: new Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              new ConstrainedBox(
+                constraints: BoxConstraints.tightFor(width: 200.0),
+                child: new SwitchListTile.adaptive(
+                  title: new Text('Pick multiple files', textAlign: TextAlign.right),
+                  onChanged: (bool value) => setState(() => _multiPick = value),
+                  value: _multiPick,
+                ),
+              ),
+              new Padding(
+                padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
+                child: new RaisedButton(
+                  onPressed: () => _openFileExplorer(),
+                  child: new Text("Open file picker"),
+                ),
+              ),
+              new Builder(
+                builder: (BuildContext context) => _loadingPath
+                    ? Padding(
+                        padding: const EdgeInsets.only(bottom: 10.0),
+                        child: const CircularProgressIndicator())
+                    : _path != null || _paths != null
+                        ? new Container(
+                            padding: const EdgeInsets.only(bottom: 10.0),
+                            height: MediaQuery.of(context).size.height * 0.50,
+                            child: new Scrollbar(
+                                child: new ListView.separated(
+                              itemCount: _paths != null && _paths.isNotEmpty ? _paths.length : 1,
+                              itemBuilder: (BuildContext context, int index) {
+                                final bool isMultiPath = _paths != null && _paths.isNotEmpty;
+                                final String name = 'File $index: ' +
+                                    (isMultiPath
+                                        ? _paths.keys.toList()[index]
+                                        : _fileName ?? '...');
+                                final path =
+                                    isMultiPath ? _paths.values.toList()[index].toString() : _path;
+                                return new ListTile(
+                                  onTap: () {
+                                    Future<void> openFile() async {
+                                      var currentPath = _paths.values.toList();
+                                      print("-- Path: ${currentPath[index]}");
+                                      await OpenFile.open(currentPath[index]);
+                                    }
+
+                                    openFile();
+                                  },
+                                  title: new Text(
+                                    name,
+                                  ),
+                                  subtitle: new Text(path),
+                                );
+                              },
+                              separatorBuilder: (BuildContext context, int index) => new Divider(),
+                            )),
+                          )
+                        : new Container(),
+              ),
+            ],
+          ),
+        ),
+      )),
+    );
   }
 }

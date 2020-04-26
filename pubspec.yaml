@@ -17,6 +17,7 @@ environment:
   sdk: ">=2.1.0 <3.0.0"
 
 dependencies:
+  open_file: 3.0.1
   file_picker: ^1.6.0
   path_provider:
   flutter_slidable:
