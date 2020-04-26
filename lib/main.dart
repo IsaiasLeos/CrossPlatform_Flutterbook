@@ -37,7 +37,7 @@ class FlutterBook extends StatelessWidget {
                       Tab(icon: Icon(Icons.contacts), text: "Contacts"),
                       Tab(icon: Icon(Icons.note), text: "Notes"),
                       Tab(icon: Icon(Icons.assignment_turned_in), text: "Tasks"),
-                      Tab(icon: Icon(Icons.android), text: "Audio Notes")
+                      Tab(icon: Icon(Icons.attach_file), text: "Documents")
                     ])),
                 body: TabBarView(
                     children: [Appointments(), Contacts(), Notes(), Tasks(), Documents()]))));

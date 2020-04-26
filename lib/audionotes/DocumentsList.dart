@@ -15,7 +15,11 @@ class DocumentsList extends StatelessWidget {
           return Scaffold(
             // Add Document.
             floatingActionButton: FloatingActionButton(
-                child: Icon(Icons.add, color: Colors.white), onPressed: () async {}),
+                child: Icon(Icons.add, color: Colors.white), onPressed: () async {
+                documentsModel.entityBeingEdited = Document();
+                documentsModel.setColor(null);
+                documentsModel.setStackIndex(1);
+            }),
             body: ListView.builder(
                 itemCount: documentsModel.entityList.length,
                 itemBuilder: (BuildContext inBuildContext, int inIndex) {
