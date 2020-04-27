@@ -32,7 +32,6 @@ class DocumentsDBWorker {
   /// @return A Database instance.
   Future<Database> init() async {
     print("-- document DocumentDBWorker.init()");
-
     String currentPath = join(utils.docsDir.path, "documents.db");
     print("-- document DocumentDBWorker.init(): path = $currentPath");
     Database db = await openDatabase(currentPath, version: 1, onOpen: (db) {},

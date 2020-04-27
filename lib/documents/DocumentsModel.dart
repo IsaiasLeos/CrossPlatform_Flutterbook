@@ -19,7 +19,6 @@ class DocumentsModel extends BaseModel {
   /// @param inColor The color.
   void setPath(String inPath) {
     print("-- DocumentModel.setPath(): inPath = $inPath");
-
     path = inPath;
     notifyListeners();
   }

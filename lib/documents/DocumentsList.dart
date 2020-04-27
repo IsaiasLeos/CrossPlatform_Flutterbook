@@ -13,41 +13,29 @@ class DocumentsList extends StatefulWidget {
 }
 
 class _DocumentsListState extends State<DocumentsList> {
-  String _fileName;
   String _path;
-  Map<String, String> _paths;
   String _extension;
-  bool _loadingPath = false;
-  bool _multiPick = false;
   FileType _pickingType;
 
-  void _openFileExplorer() async {
-    setState(() => _loadingPath = true);
+  void _openFileExplorer(BuildContext inContext, bool save) async {
     try {
-      if (_multiPick) {
-        _path = null;
-        _paths = await FilePicker.getMultiFilePath(
-            type: _pickingType,
-            allowedExtensions: (_extension?.isNotEmpty ?? false)
-                ? _extension?.replaceAll(' ', '')?.split(',')
-                : null);
-      } else {
-        _paths = null;
-        _path = await FilePicker.getFilePath(
-            type: _pickingType,
-            allowedExtensions: (_extension?.isNotEmpty ?? false)
-                ? _extension?.replaceAll(' ', '')?.split(',')
-                : null);
-      }
+      _path = await FilePicker.getFilePath(
+          type: _pickingType,
+          allowedExtensions: (_extension?.isNotEmpty ?? false)
+              ? _extension?.replaceAll(' ', '')?.split(',')
+              : null);
     } on Exception catch (e) {
       print("Unsupported operation" + e.toString());
     }
     if (!mounted) return;
-    setState(() {
-      _loadingPath = false;
-      _fileName =
-          _path != null ? _path.split('/').last : _paths != null ? _paths.keys.toString() : '...';
-    });
+    documentsModel.entityBeingEdited = Document();
+    documentsModel.setStackIndex(0);
+    documentsModel.entityBeingEdited.path = _path;
+    if (save) {
+      _save(inContext, documentsModel);
+    } else {
+      _edit(inContext, documentsModel);
+    }
   }
 
   @override
@@ -62,20 +50,14 @@ class _DocumentsListState extends State<DocumentsList> {
             floatingActionButton: FloatingActionButton(
                 child: Icon(Icons.add, color: Colors.white),
                 onPressed: () async {
-                  _openFileExplorer();
-                  documentsModel.entityBeingEdited = Document();
-                  documentsModel.setStackIndex(0);
-                  documentsModel.setPath("");
-                  _save(inContext, documentsModel);
+                  _openFileExplorer(inContext, true);
                 }),
             body: ListView.builder(
               itemCount: documentsModel.entityList.length,
               itemBuilder: (BuildContext context, int inIndex) {
                 Document document = documentsModel.entityList[inIndex];
-                final bool isMultiPath = _paths != null && _paths.isNotEmpty;
-                final String name = 'File $inIndex: ' +
-                    (isMultiPath ? _paths.keys.toList()[inIndex] : _fileName ?? '...');
-                final path = isMultiPath ? _paths.values.toList()[inIndex].toString() : _path;
+                var offset = inIndex + 1;
+                final String name = 'File $offset: ${document.path.split('/').last}';
                 return Slidable(
                   delegate: SlidableDrawerDelegate(),
                   actionExtentRatio: .25,
@@ -88,22 +70,19 @@ class _DocumentsListState extends State<DocumentsList> {
                           _deleteNote(inContext, document);
                         }),
                     IconSlideAction(
-                        caption: "Save",
-                        color: Colors.blue,
-                        icon: Icons.save,
+                        caption: "Edit",
+                        color: Colors.green,
+                        icon: Icons.edit,
                         onTap: () {
-                          documentsModel.entityBeingEdited.path = path;
-                          _save(inContext, documentsModel);
-                        }),
-                    IconSlideAction(
-                        caption: "Edit", color: Colors.green, icon: Icons.edit, onTap: () {})
+                          _openFileExplorer(inContext, false);
+                        })
                   ],
                   child: new ListTile(
                     onTap: () {
                       Future<void> openFile() async {
-                        var currentPath = _paths.values.toList();
-                        print("-- Path: ${currentPath[inIndex]}");
-                        await OpenFile.open(currentPath[inIndex]);
+                        var currentPath = document.path;
+                        print("-- Path: $currentPath");
+                        await OpenFile.open(currentPath);
                       }
 
                       openFile();
@@ -111,7 +90,7 @@ class _DocumentsListState extends State<DocumentsList> {
                     title: new Text(
                       name,
                     ),
-                    subtitle: new Text(path),
+                    subtitle: new Text(document.path),
                   ),
                 );
               },
@@ -120,21 +99,45 @@ class _DocumentsListState extends State<DocumentsList> {
         }));
   }
 
-  /// Save this contact to the database.
+  /// Save to the database.
   ///
   /// @param inContext The BuildContext of the parent widget.
   /// @param inModel   The NotesModel.
-  void _save(BuildContext inContext, DocumentsModel inDocumentModel) async {
+  void _edit(BuildContext inContext, DocumentsModel inDocumentModel) async {
     print("-- DocumentList._save()");
-
+    print("-- DocumentList._save() - ${documentsModel.path}");
     // Creating a new note.
     if (inDocumentModel.entityBeingEdited.id == null) {
       print("-- DocumentsList._save(): Creating: ${inDocumentModel.entityBeingEdited}");
       await DocumentsDBWorker.db.create(documentsModel.entityBeingEdited);
       // Updating an existing note.
-    } else {
-      print("-- DocumentsList._save(): Updating: ${inDocumentModel.entityBeingEdited}");
-      await DocumentsDBWorker.db.update(documentsModel.entityBeingEdited);
+    }
+
+    // Reload data from database to update list.
+    documentsModel.loadData("documents", DocumentsDBWorker.db);
+
+    // Go back to the list view.
+    inDocumentModel.setStackIndex(0);
+
+    // Show SnackBar.
+    Scaffold.of(inContext).showSnackBar(SnackBar(
+        backgroundColor: Colors.green,
+        duration: Duration(seconds: 2),
+        content: Text("Document Saved")));
+  }
+
+  /// Save to the database.
+  ///
+  /// @param inContext The BuildContext of the parent widget.
+  /// @param inModel   The NotesModel.
+  void _save(BuildContext inContext, DocumentsModel inDocumentModel) async {
+    print("-- DocumentList._save()");
+    print("-- DocumentList._save() - ${documentsModel.path}");
+    // Creating a new note.
+    if (inDocumentModel.entityBeingEdited.id == null) {
+      print("-- DocumentsList._save(): Creating: ${inDocumentModel.entityBeingEdited}");
+      await DocumentsDBWorker.db.create(documentsModel.entityBeingEdited);
+      // Updating an existing note.
     }
 
     // Reload data from database to update list.
@@ -164,7 +167,7 @@ class _DocumentsListState extends State<DocumentsList> {
         builder: (BuildContext inAlertContext) {
           return AlertDialog(
               title: Text("Delete Document"),
-              content: Text("Are you sure you want to delete ${inDocument.path}?"),
+              content: Text("Are you sure you want to delete ${inDocument.path.split('/').last}?"),
               actions: [
                 FlatButton(
                     child: Text("Cancel"),
