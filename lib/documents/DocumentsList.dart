@@ -57,7 +57,16 @@ class _DocumentsListState extends State<DocumentsList> {
               itemBuilder: (BuildContext context, int inIndex) {
                 Document document = documentsModel.entityList[inIndex];
                 var offset = inIndex + 1;
-                final String name = 'File $offset: ${document.path.split('/').last}';
+                var nameMsg;
+                var docPath;
+                try {
+                  docPath = document.path;
+                  nameMsg = document.path.split('/').last;
+                } catch (Exception) {
+                  nameMsg = "This error appear because path is null or DB is corrupt";
+                  docPath = "This error appear because path is null or DB is corrupt";
+                }
+                final String name = 'File $offset: $nameMsg';
                 return Slidable(
                   delegate: SlidableDrawerDelegate(),
                   actionExtentRatio: .25,
@@ -90,7 +99,7 @@ class _DocumentsListState extends State<DocumentsList> {
                     title: new Text(
                       name,
                     ),
-                    subtitle: new Text(document.path),
+                    subtitle: new Text(docPath),
                   ),
                 );
               },
@@ -100,18 +109,11 @@ class _DocumentsListState extends State<DocumentsList> {
   }
 
   /// Save to the database.
-  ///
+  /// TODO
   /// @param inContext The BuildContext of the parent widget.
   /// @param inModel   The NotesModel.
   void _edit(BuildContext inContext, DocumentsModel inDocumentModel) async {
-    print("-- DocumentList._save()");
-    print("-- DocumentList._save() - ${documentsModel.path}");
-    // Creating a new note.
-    if (inDocumentModel.entityBeingEdited.id == null) {
-      print("-- DocumentsList._save(): Creating: ${inDocumentModel.entityBeingEdited}");
-      await DocumentsDBWorker.db.create(documentsModel.entityBeingEdited);
-      // Updating an existing note.
-    }
+    print("-- DocumentList.edit()");
 
     // Reload data from database to update list.
     documentsModel.loadData("documents", DocumentsDBWorker.db);
@@ -160,6 +162,12 @@ class _DocumentsListState extends State<DocumentsList> {
   /// @return           Future.
   Future _deleteNote(BuildContext inContext, Document inDocument) async {
     print("-- DocumentsList._deleteNote(): inDocument = $inDocument");
+    var deleteText;
+    try {
+      deleteText = inDocument.path.split('/').last;
+    } catch (Exception) {
+      deleteText = "This error appear because path is null or DB is corrupt";
+    }
 
     return showDialog(
         context: inContext,
@@ -167,7 +175,7 @@ class _DocumentsListState extends State<DocumentsList> {
         builder: (BuildContext inAlertContext) {
           return AlertDialog(
               title: Text("Delete Document"),
-              content: Text("Are you sure you want to delete ${inDocument.path.split('/').last}?"),
+              content: Text("Are you sure you want to delete $deleteText}?"),
               actions: [
                 FlatButton(
                     child: Text("Cancel"),
