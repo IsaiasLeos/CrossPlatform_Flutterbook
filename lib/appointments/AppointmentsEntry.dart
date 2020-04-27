@@ -22,7 +22,7 @@ class AppointmentsEntry extends StatelessWidget {
 
     // Attach event listeners to controllers to capture entries in model.
     _titleEditingController.addListener(() {
-      appointmentsModel.entityBeingEdited.title = _titleEditingController.text;
+      appointmentsModel.entityBeingEdited.path = _titleEditingController.text;
     });
     _descriptionEditingController.addListener(() {
       appointmentsModel.entityBeingEdited.description = _descriptionEditingController.text;
@@ -38,7 +38,7 @@ class AppointmentsEntry extends StatelessWidget {
 
     // Set value of controllers.
     if (appointmentsModel.entityBeingEdited != null) {
-      _titleEditingController.text = appointmentsModel.entityBeingEdited.title;
+      _titleEditingController.text = appointmentsModel.entityBeingEdited.path;
       _descriptionEditingController.text = appointmentsModel.entityBeingEdited.description;
     }
 

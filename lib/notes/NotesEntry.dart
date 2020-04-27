@@ -194,7 +194,6 @@ class NotesEntry extends StatelessWidget {
     if (inModel.entityBeingEdited.id == null) {
       print("-- NotesEntry._save(): Creating: ${inModel.entityBeingEdited}");
       await NotesDBWorker.db.create(notesModel.entityBeingEdited);
-
       // Updating an existing note.
     } else {
       print("-- NotesEntry._save(): Updating: ${inModel.entityBeingEdited}");

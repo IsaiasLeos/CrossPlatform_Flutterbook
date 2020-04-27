@@ -79,7 +79,6 @@ class NotesList extends StatelessWidget {
         }));
   }
 
-
   /// Show a dialog requesting delete confirmation.
   ///
   /// @param  inContext The BuildContext of the parent Widget.

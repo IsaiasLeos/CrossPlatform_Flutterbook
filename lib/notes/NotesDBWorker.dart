@@ -115,8 +115,6 @@ class NotesDBWorker {
     return noteFromMap(rec.first);
   }
 
-  /* End get(). */
-
   /// Get all notes.
   ///
   /// @return A List of Note objects.
