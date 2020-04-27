@@ -79,7 +79,6 @@ class NotesList extends StatelessWidget {
         }));
   }
 
-  /* End build(). */
 
   /// Show a dialog requesting delete confirmation.
   ///

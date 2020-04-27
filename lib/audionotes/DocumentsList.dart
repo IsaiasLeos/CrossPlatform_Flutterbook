@@ -1,5 +1,8 @@
 import 'package:file_picker/file_picker.dart';
 import "package:flutter/material.dart";
+import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:inclasswork/audionotes/DocumentsDBWorker.dart';
+import 'package:inclasswork/audionotes/DocumentsModel.dart';
 import 'package:open_file/open_file.dart';
 
 /// The Document List sub-screen.
@@ -90,6 +93,9 @@ class _DocumentsListState extends State<DocumentsList> {
                                 child: new ListView.separated(
                               itemCount: _paths != null && _paths.isNotEmpty ? _paths.length : 1,
                               itemBuilder: (BuildContext context, int index) {
+                                var offset = index + 1;
+                                print("-- DocumentList.build(): offset = $offset");
+//                                Document document = documentsModel.entityList[offset];
                                 final bool isMultiPath = _paths != null && _paths.isNotEmpty;
                                 final String name = 'File $index: ' +
                                     (isMultiPath
@@ -97,20 +103,31 @@ class _DocumentsListState extends State<DocumentsList> {
                                         : _fileName ?? '...');
                                 final path =
                                     isMultiPath ? _paths.values.toList()[index].toString() : _path;
-                                return new ListTile(
-                                  onTap: () {
-                                    Future<void> openFile() async {
-                                      var currentPath = _paths.values.toList();
-                                      print("-- Path: ${currentPath[index]}");
-                                      await OpenFile.open(currentPath[index]);
-                                    }
+                                return Slidable(
+                                  delegate: SlidableDrawerDelegate(),
+                                  actionExtentRatio: .25,
+                                  secondaryActions: [
+                                    IconSlideAction(
+                                        caption: "Delete",
+                                        color: Colors.red,
+                                        icon: Icons.delete,
+                                        onTap: () {})
+                                  ],
+                                  child: new ListTile(
+                                    onTap: () {
+                                      Future<void> openFile() async {
+                                        var currentPath = _paths.values.toList();
+                                        print("-- Path: ${currentPath[index]}");
+                                        await OpenFile.open(currentPath[index]);
+                                      }
 
-                                    openFile();
-                                  },
-                                  title: new Text(
-                                    name,
+                                      openFile();
+                                    },
+                                    title: new Text(
+                                      name,
+                                    ),
+                                    subtitle: new Text(path),
                                   ),
-                                  subtitle: new Text(path),
                                 );
                               },
                               separatorBuilder: (BuildContext context, int index) => new Divider(),
@@ -123,5 +140,44 @@ class _DocumentsListState extends State<DocumentsList> {
         ),
       )),
     );
+  }
+
+  /// Show a dialog requesting delete confirmation.
+  ///
+  /// @param  inContext The BuildContext of the parent Widget.
+  /// @param  inNote    The note (potentially) being deleted.
+  /// @return           Future.
+  Future _deleteNote(BuildContext inContext, Document inDocument) async {
+    print("-- NotestList._deleteNote(): inNote = $inDocument");
+
+    return showDialog(
+        context: inContext,
+        barrierDismissible: false,
+        builder: (BuildContext inAlertContext) {
+          return AlertDialog(
+              title: Text("Delete Note"),
+              content: Text("Are you sure you want to delete ${inDocument.title}?"),
+              actions: [
+                FlatButton(
+                    child: Text("Cancel"),
+                    onPressed: () {
+                      // Just hide dialog.
+                      Navigator.of(inAlertContext).pop();
+                    }),
+                FlatButton(
+                    child: Text("Delete"),
+                    onPressed: () async {
+                      // Delete from database, then hide dialog, show SnackBar, then re-load data for the list.
+                      await DocumentsDBWorker.db.delete(inDocument.id);
+                      Navigator.of(inAlertContext).pop();
+                      Scaffold.of(inContext).showSnackBar(SnackBar(
+                          backgroundColor: Colors.red,
+                          duration: Duration(seconds: 2),
+                          content: Text("Note deleted")));
+                      // Reload data from database to update list.
+                      documentsModel.loadData("notes", DocumentsDBWorker.db);
+                    })
+              ]);
+        });
   }
 }
