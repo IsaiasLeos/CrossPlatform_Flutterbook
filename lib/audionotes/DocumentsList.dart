@@ -111,6 +111,11 @@ class _DocumentsListState extends State<DocumentsList> {
                                         caption: "Delete",
                                         color: Colors.red,
                                         icon: Icons.delete,
+                                        onTap: () {}),
+                                    IconSlideAction(
+                                        caption: "Edit",
+                                        color: Colors.green,
+                                        icon: Icons.edit,
                                         onTap: () {})
                                   ],
                                   child: new ListTile(
