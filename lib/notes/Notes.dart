@@ -8,7 +8,7 @@ import 'NotesModel.dart';
 
 /// The Notes screen.
 class Notes extends StatelessWidget {
-  /// Constructor.
+  /// Constructor
   Notes() {
     print("-- Notes.constructor");
     notesModel.loadData("notes", NotesDBWorker.db);

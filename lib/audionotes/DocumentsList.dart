@@ -4,6 +4,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:inclasswork/audionotes/DocumentsDBWorker.dart';
 import 'package:inclasswork/audionotes/DocumentsModel.dart';
 import 'package:open_file/open_file.dart';
+import 'package:scoped_model/scoped_model.dart';
 
 /// The Document List sub-screen.
 class DocumentsList extends StatefulWidget {
@@ -57,94 +58,91 @@ class _DocumentsListState extends State<DocumentsList> {
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      body: new Center(
-          child: new Padding(
-        padding: const EdgeInsets.only(left: 10.0, right: 10.0),
-        child: new SingleChildScrollView(
-          child: new Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              new ConstrainedBox(
-                constraints: BoxConstraints.tightFor(width: 200.0),
-                child: new SwitchListTile.adaptive(
-                  title: new Text('Pick multiple files', textAlign: TextAlign.right),
-                  onChanged: (bool value) => setState(() => _multiPick = value),
-                  value: _multiPick,
-                ),
-              ),
-              new Padding(
-                padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
-                child: new RaisedButton(
-                  onPressed: () => _openFileExplorer(),
-                  child: new Text("Open file picker"),
-                ),
-              ),
-              new Builder(
-                builder: (BuildContext context) => _loadingPath
-                    ? Padding(
-                        padding: const EdgeInsets.only(bottom: 10.0),
-                        child: const CircularProgressIndicator())
-                    : _path != null || _paths != null
-                        ? new Container(
-                            padding: const EdgeInsets.only(bottom: 10.0),
-                            height: MediaQuery.of(context).size.height * 0.50,
-                            child: new Scrollbar(
-                                child: new ListView.separated(
-                              itemCount: _paths != null && _paths.isNotEmpty ? _paths.length : 1,
-                              itemBuilder: (BuildContext context, int index) {
-                                var offset = index + 1;
-                                print("-- DocumentList.build(): offset = $offset");
-//                                Document document = documentsModel.entityList[offset];
-                                final bool isMultiPath = _paths != null && _paths.isNotEmpty;
-                                final String name = 'File $index: ' +
-                                    (isMultiPath
-                                        ? _paths.keys.toList()[index]
-                                        : _fileName ?? '...');
-                                final path =
-                                    isMultiPath ? _paths.values.toList()[index].toString() : _path;
-                                return Slidable(
-                                  delegate: SlidableDrawerDelegate(),
-                                  actionExtentRatio: .25,
-                                  secondaryActions: [
-                                    IconSlideAction(
-                                        caption: "Delete",
-                                        color: Colors.red,
-                                        icon: Icons.delete,
-                                        onTap: () {}),
-                                    IconSlideAction(
-                                        caption: "Edit",
-                                        color: Colors.green,
-                                        icon: Icons.edit,
-                                        onTap: () {})
-                                  ],
-                                  child: new ListTile(
-                                    onTap: () {
-                                      Future<void> openFile() async {
-                                        var currentPath = _paths.values.toList();
-                                        print("-- Path: ${currentPath[index]}");
-                                        await OpenFile.open(currentPath[index]);
-                                      }
+    return ScopedModel<DocumentsModel>(
+        model: documentsModel,
+        child: ScopedModelDescendant<DocumentsModel>(
+            builder: (BuildContext inContext, Widget inChild, DocumentsModel inModel) {
+          return new Scaffold(
+              floatingActionButton: FloatingActionButton(
+                  child: Icon(Icons.add, color: Colors.white),
+                  onPressed: () async {
+                    _multiPick = true;
+                    _openFileExplorer();
+                  }),
+              body: Container(
+                padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
+                child: new SingleChildScrollView(
+                  child: new Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      new Builder(
+                        builder: (BuildContext context) => _loadingPath
+                            ? Padding(
+                                padding: const EdgeInsets.only(bottom: 10.0),
+                                child: const CircularProgressIndicator())
+                            : _path != null || _paths != null
+                                ? new Container(
+                                    padding: const EdgeInsets.only(bottom: 10.0),
+                                    height: MediaQuery.of(context).size.height * 0.50,
+                                    child: new Scrollbar(
+                                        child: new ListView.separated(
+                                      itemCount:
+                                          _paths != null && _paths.isNotEmpty ? _paths.length : 1,
+                                      itemBuilder: (BuildContext context, int index) {
+                                        var offset = index + 1;
+                                        print("-- DocumentList.build(): offset = $offset");
+                                        final bool isMultiPath =
+                                            _paths != null && _paths.isNotEmpty;
+                                        final String name = 'File $index: ' +
+                                            (isMultiPath
+                                                ? _paths.keys.toList()[index]
+                                                : _fileName ?? '...');
+                                        final path = isMultiPath
+                                            ? _paths.values.toList()[index].toString()
+                                            : _path;
+                                        return Slidable(
+                                          delegate: SlidableDrawerDelegate(),
+                                          actionExtentRatio: .25,
+                                          secondaryActions: [
+                                            IconSlideAction(
+                                                caption: "Delete",
+                                                color: Colors.red,
+                                                icon: Icons.delete,
+                                                onTap: () {}),
+                                            IconSlideAction(
+                                                caption: "Edit",
+                                                color: Colors.green,
+                                                icon: Icons.edit,
+                                                onTap: () {})
+                                          ],
+                                          child: new ListTile(
+                                            onTap: () {
+                                              Future<void> openFile() async {
+                                                var currentPath = _paths.values.toList();
+                                                print("-- Path: ${currentPath[index]}");
+                                                await OpenFile.open(currentPath[index]);
+                                              }
 
-                                      openFile();
-                                    },
-                                    title: new Text(
-                                      name,
-                                    ),
-                                    subtitle: new Text(path),
-                                  ),
-                                );
-                              },
-                              separatorBuilder: (BuildContext context, int index) => new Divider(),
-                            )),
-                          )
-                        : new Container(),
-              ),
-            ],
-          ),
-        ),
-      )),
-    );
+                                              openFile();
+                                            },
+                                            title: new Text(
+                                              name,
+                                            ),
+                                            subtitle: new Text(path),
+                                          ),
+                                        );
+                                      },
+                                      separatorBuilder: (BuildContext context, int index) =>
+                                          new Divider(),
+                                    )),
+                                  )
+                                : new Container(),
+                      ),
+                    ],
+                  ),
+                ),
+              ));
+        }));
   }
 
   /// Show a dialog requesting delete confirmation.
