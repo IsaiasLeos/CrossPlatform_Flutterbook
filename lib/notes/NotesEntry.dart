@@ -19,7 +19,7 @@ class NotesEntry extends StatelessWidget {
 
     // Attach event listeners to controllers to capture entries
     _titleEditingController.addListener(() {
-      notesModel.entityBeingEdited.title = _titleEditingController.text;
+      notesModel.entityBeingEdited.path = _titleEditingController.text;
     });
     _contentEditingController.addListener(() {
       notesModel.entityBeingEdited.content = _contentEditingController.text;
@@ -31,7 +31,7 @@ class NotesEntry extends StatelessWidget {
 
     // Set value of controllers.
     if (notesModel.entityBeingEdited != null) {
-      _titleEditingController.text = notesModel.entityBeingEdited.title;
+      _titleEditingController.text = notesModel.entityBeingEdited.path;
       _contentEditingController.text = notesModel.entityBeingEdited.content;
     }
     return ScopedModel(

@@ -12,7 +12,7 @@ class Document {
 
 /// The model backing this entity type's views.
 class DocumentsModel extends BaseModel {
-  String title;
+  String path;
 
   /// For display of the color chosen by the user.
   ///
@@ -20,7 +20,7 @@ class DocumentsModel extends BaseModel {
   void setPath(String inPath) {
     print("-- DocumentModel.setPath(): inPath = $inPath");
 
-    title = inPath;
+    path = inPath;
     notifyListeners();
   }
 }

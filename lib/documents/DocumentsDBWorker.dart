@@ -141,6 +141,6 @@ class DocumentsDBWorker {
     print("-- document DocumentDBWorker.delete(): inID = $inID");
 
     Database db = await database;
-    return await db.delete("document", where: "id = ?", whereArgs: [inID]);
+    return await db.delete("documents", where: "id = ?", whereArgs: [inID]);
   }
 }
