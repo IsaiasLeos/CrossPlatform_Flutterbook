@@ -1,10 +1,10 @@
 import "package:flutter/material.dart";
 import "package:scoped_model/scoped_model.dart";
 
-import 'AppointmentsDBWorker.dart';
-import 'AppointmentsEntry.dart';
-import 'AppointmentsList.dart';
-import 'AppointmentsModel.dart' show AppointmentsModel, appointmentsModel;
+import "AppointmentsDBWorker.dart";
+import "AppointmentsEntry.dart";
+import "AppointmentsList.dart";
+import "AppointmentsModel.dart" show AppointmentsModel, appointmentsModel;
 
 /// The Appointments screen.
 class Appointments extends StatelessWidget {

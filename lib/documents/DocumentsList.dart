@@ -1,6 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import "package:flutter/material.dart";
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:open_file/open_file.dart';
 import 'package:scoped_model/scoped_model.dart';
 
@@ -46,11 +47,19 @@ class _DocumentsListState extends State<DocumentsList> {
         child: ScopedModelDescendant<DocumentsModel>(
             builder: (BuildContext inContext, Widget inChild, DocumentsModel inModel) {
           return new Scaffold(
-            floatingActionButton: FloatingActionButton(
-                child: Icon(Icons.add, color: Colors.white),
-                onPressed: () async {
-                  _openFileExplorer(inContext, true, 0);
-                }),
+            floatingActionButton: SpeedDial(
+              animatedIcon: AnimatedIcons.menu_close,
+              animatedIconTheme: IconThemeData(size: 22.0),
+              children: [
+                SpeedDialChild(
+                  child: Icon(Icons.add),
+                  onTap: () {
+                    _openFileExplorer(inContext, true, 0);
+                  },
+                ),
+                SpeedDialChild(child: Icon(Icons.camera), onTap: () {})
+              ],
+            ),
             body: ListView.builder(
               itemCount: documentsModel.entityList.length,
               itemBuilder: (BuildContext context, int inIndex) {

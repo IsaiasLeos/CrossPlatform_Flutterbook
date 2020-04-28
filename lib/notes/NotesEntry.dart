@@ -6,24 +6,30 @@ import 'NotesModel.dart' show NotesModel, notesModel;
 
 /// The Notes Entry sub-screen.
 class NotesEntry extends StatelessWidget {
+
+
   /// Controllers for TextFields.
   final TextEditingController _titleEditingController = TextEditingController();
   final TextEditingController _contentEditingController = TextEditingController();
 
+
   // Key for form.
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
+
   /// Constructor.
   NotesEntry() {
-    print("-- NotesEntry.constructor");
 
-    // Attach event listeners to controllers to capture entries
+    print("## NotesEntry.constructor");
+
+    // Attach event listeners to controllers to capture entries in model.
     _titleEditingController.addListener(() {
-      notesModel.entityBeingEdited.path = _titleEditingController.text;
+      notesModel.entityBeingEdited.title = _titleEditingController.text;
     });
     _contentEditingController.addListener(() {
       notesModel.entityBeingEdited.content = _contentEditingController.text;
     });
+
   }
 
   Widget build(BuildContext inContext) {
@@ -31,7 +37,7 @@ class NotesEntry extends StatelessWidget {
 
     // Set value of controllers.
     if (notesModel.entityBeingEdited != null) {
-      _titleEditingController.text = notesModel.entityBeingEdited.path;
+      _titleEditingController.text = notesModel.entityBeingEdited.title;
       _contentEditingController.text = notesModel.entityBeingEdited.content;
     }
     return ScopedModel(

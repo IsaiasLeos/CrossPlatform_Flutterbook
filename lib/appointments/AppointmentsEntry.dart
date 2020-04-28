@@ -3,9 +3,9 @@ import "dart:async";
 import "package:flutter/material.dart";
 import "package:scoped_model/scoped_model.dart";
 
-import '../utils.dart' as utils;
-import 'AppointmentsDBWorker.dart';
-import 'AppointmentsModel.dart' show AppointmentsModel, appointmentsModel;
+import "../utils.dart" as utils;
+import "AppointmentsDBWorker.dart";
+import "AppointmentsModel.dart" show AppointmentsModel, appointmentsModel;
 
 /// The Appointments Entry sub-screen.
 class AppointmentsEntry extends StatelessWidget {
@@ -18,11 +18,11 @@ class AppointmentsEntry extends StatelessWidget {
 
   /// Constructor.
   AppointmentsEntry() {
-    print("-- AppointmentsEntry.constructor");
+    print("## AppointmentsEntry.constructor");
 
     // Attach event listeners to controllers to capture entries in model.
     _titleEditingController.addListener(() {
-      appointmentsModel.entityBeingEdited.path = _titleEditingController.text;
+      appointmentsModel.entityBeingEdited.title = _titleEditingController.text;
     });
     _descriptionEditingController.addListener(() {
       appointmentsModel.entityBeingEdited.description = _descriptionEditingController.text;
@@ -34,11 +34,11 @@ class AppointmentsEntry extends StatelessWidget {
   /// @param  inContext The BuildContext for this widget.
   /// @return           A Widget.
   Widget build(BuildContext inContext) {
-    print("-- AppointmentsEntry.build()");
+    print("## AppointmentsEntry.build()");
 
     // Set value of controllers.
     if (appointmentsModel.entityBeingEdited != null) {
-      _titleEditingController.text = appointmentsModel.entityBeingEdited.path;
+      _titleEditingController.text = appointmentsModel.entityBeingEdited.title;
       _descriptionEditingController.text = appointmentsModel.entityBeingEdited.description;
     }
 
@@ -152,7 +152,7 @@ class AppointmentsEntry extends StatelessWidget {
   /// @param inContext The BuildContext of the parent widget.
   /// @param inModel   The AppointmentsModel.
   void _save(BuildContext inContext, AppointmentsModel inModel) async {
-    print("-- AppointmentsEntry._save()");
+    print("## AppointmentsEntry._save()");
 
     // Abort if form isn't valid.
     if (!_formKey.currentState.validate()) {
@@ -161,12 +161,12 @@ class AppointmentsEntry extends StatelessWidget {
 
     // Creating a new appointment.
     if (inModel.entityBeingEdited.id == null) {
-      print("-- AppointmentsEntry._save(): Creating: ${inModel.entityBeingEdited}");
+      print("## AppointmentsEntry._save(): Creating: ${inModel.entityBeingEdited}");
       await AppointmentsDBWorker.db.create(appointmentsModel.entityBeingEdited);
 
       // Updating an existing appointment.
     } else {
-      print("-- AppointmentsEntry._save(): Updating: ${inModel.entityBeingEdited}");
+      print("## AppointmentsEntry._save(): Updating: ${inModel.entityBeingEdited}");
       await AppointmentsDBWorker.db.update(appointmentsModel.entityBeingEdited);
     }
 
