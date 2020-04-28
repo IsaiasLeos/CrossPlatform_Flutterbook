@@ -2,6 +2,7 @@ import 'package:file_picker/file_picker.dart';
 import "package:flutter/material.dart";
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import "package:font_awesome_flutter/font_awesome_flutter.dart";
 import 'package:image_picker/image_picker.dart';
 import 'package:open_file/open_file.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -19,7 +20,6 @@ class _DocumentsListState extends State<DocumentsList> {
   String _path;
   String _extension;
   FileType _pickingType;
-  PermissionStatus _status;
 
   void _openFileExplorer(BuildContext inContext, bool save, int index) async {
     try {
@@ -80,17 +80,20 @@ class _DocumentsListState extends State<DocumentsList> {
               children: [
                 SpeedDialChild(
                   child: Icon(Icons.add),
+                  label: "File Explorer",
                   onTap: () {
                     _openFileExplorer(inContext, true, 0);
                   },
                 ),
                 SpeedDialChild(
                     child: Icon(Icons.camera),
+                    label: "Camera",
                     onTap: () {
                       imageSelectorCamera(inContext);
                     }),
                 SpeedDialChild(
                     child: Icon(Icons.image),
+                    label: "Gallery",
                     onTap: () {
                       imageSelectorGallery(inContext);
                     })
@@ -112,6 +115,34 @@ class _DocumentsListState extends State<DocumentsList> {
                   docPath = "This error appear because path is null or DB is corrupt";
                 }
                 final String name = 'File $offset: $nameMsg';
+                var fileExtension = document.path.split('.')[1];
+                var imageIndex = 0;
+                switch (fileExtension) {
+                  case 'png':
+                  case 'jpg':
+                  case 'bmp':
+                    imageIndex = 2;
+                    break;
+                  case 'mp3':
+                  case 'm4a':
+                  case 'ogg':
+                  case 'flac':
+                  case 'webm':
+                  case 'wma':
+                    imageIndex = 1;
+                    break;
+                  case 'gif':
+                  case 'flv':
+                  case 'mp4':
+                  case 'mpg':
+                  case 'mpeg':
+                  case '3gp':
+                    imageIndex = 3;
+                    break;
+                  default:
+                    imageIndex = 0;
+                }
+                print(imageIndex);
                 return Slidable(
                   actionPane: SlidableDrawerActionPane(),
                   actionExtentRatio: .25,
@@ -132,9 +163,13 @@ class _DocumentsListState extends State<DocumentsList> {
                         })
                   ],
                   child: new Container(
+                    color: Colors.lightBlueAccent,
                     margin: const EdgeInsets.all(10.0),
-                    color: Colors.blueAccent,
                     child: new ListTile(
+                      isThreeLine: true,
+                      onLongPress: () {
+                        _openFileExplorer(inContext, false, inIndex);
+                      },
                       onTap: () {
                         Future<void> openFile() async {
                           var currentPath = document.path;
