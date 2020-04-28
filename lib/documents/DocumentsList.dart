@@ -2,7 +2,9 @@ import 'package:file_picker/file_picker.dart';
 import "package:flutter/material.dart";
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:open_file/open_file.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 import 'DocumentsDBWorker.dart';
@@ -17,6 +19,7 @@ class _DocumentsListState extends State<DocumentsList> {
   String _path;
   String _extension;
   FileType _pickingType;
+  PermissionStatus _status;
 
   void _openFileExplorer(BuildContext inContext, bool save, int index) async {
     try {
@@ -40,6 +43,30 @@ class _DocumentsListState extends State<DocumentsList> {
     }
   }
 
+  void imageSelectorCamera(BuildContext context) async {
+    var imageFile = await ImagePicker.pickImage(
+      source: ImageSource.camera,
+    );
+    var filepath = imageFile.toString().split(": '")[1];
+    documentsModel.entityBeingEdited = Document();
+    documentsModel.setStackIndex(0);
+    documentsModel.entityBeingEdited.path = filepath.substring(0, filepath.length - 1);
+    print(imageFile);
+    _save(context, documentsModel);
+  }
+
+  void imageSelectorGallery(BuildContext context) async {
+    var imageFile1 = await ImagePicker.pickImage(
+      source: ImageSource.gallery,
+    );
+    var filepath = imageFile1.toString().split(": '")[1];
+    documentsModel.entityBeingEdited = Document();
+    documentsModel.setStackIndex(0);
+    documentsModel.entityBeingEdited.path = filepath.substring(0, filepath.length - 1);
+    print(_path);
+    _save(context, documentsModel);
+  }
+
   @override
   Widget build(BuildContext context) {
     return ScopedModel<DocumentsModel>(
@@ -57,10 +84,20 @@ class _DocumentsListState extends State<DocumentsList> {
                     _openFileExplorer(inContext, true, 0);
                   },
                 ),
-                SpeedDialChild(child: Icon(Icons.camera), onTap: () {})
+                SpeedDialChild(
+                    child: Icon(Icons.camera),
+                    onTap: () {
+                      imageSelectorCamera(inContext);
+                    }),
+                SpeedDialChild(
+                    child: Icon(Icons.image),
+                    onTap: () {
+                      imageSelectorGallery(inContext);
+                    })
               ],
             ),
-            body: ListView.builder(
+            body: GridView.builder(
+              gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
               itemCount: documentsModel.entityList.length,
               itemBuilder: (BuildContext context, int inIndex) {
                 Document document = documentsModel.entityList[inIndex];
@@ -94,20 +131,28 @@ class _DocumentsListState extends State<DocumentsList> {
                           _openFileExplorer(inContext, false, inIndex);
                         })
                   ],
-                  child: new ListTile(
-                    onTap: () {
-                      Future<void> openFile() async {
-                        var currentPath = document.path;
-                        print("-- Path: $currentPath");
-                        await OpenFile.open(currentPath);
-                      }
+                  child: new Container(
+                    margin: const EdgeInsets.all(10.0),
+                    color: Colors.blueAccent,
+                    child: new ListTile(
+                      onTap: () {
+                        Future<void> openFile() async {
+                          var currentPath = document.path;
+                          print("-- Path: $currentPath");
+                          await OpenFile.open(currentPath);
+                        }
 
-                      openFile();
-                    },
-                    title: new Text(
-                      name,
+                        openFile();
+                      },
+                      title: new Text(
+                        name,
+                        style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: new Text(
+                        docPath,
+                        style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.normal),
+                      ),
                     ),
-                    subtitle: new Text(docPath),
                   ),
                 );
               },
@@ -125,8 +170,6 @@ class _DocumentsListState extends State<DocumentsList> {
     print("-- DocumentList.edit()");
     print("-- DocumentList._edit(): Path - ${inDocumentModel.entityBeingEdited}");
     if (inDocumentModel.entityBeingEdited.id != null) {
-      print("################" + _path);
-      print("################" + inDocumentModel.entityBeingEdited.path);
       print("-- DocumentsList._edit(): Creating: ${inDocumentModel.entityBeingEdited}");
       await DocumentsDBWorker.db.update(documentsModel.entityBeingEdited);
       // Updating an existing note.
