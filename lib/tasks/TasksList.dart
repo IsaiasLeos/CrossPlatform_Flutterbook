@@ -40,7 +40,7 @@ class TasksList extends StatelessWidget {
                       sDueDate = DateFormat.yMMMMd("en_US").format(dueDate.toLocal());
                     }
                     return Slidable(
-                        delegate: SlidableDrawerDelegate(),
+                      actionPane: SlidableDrawerActionPane(),
                         actionExtentRatio: .25,
                         child: ListTile(
                             leading: Checkbox(

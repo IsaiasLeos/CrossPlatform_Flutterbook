@@ -68,7 +68,7 @@ class _DocumentsListState extends State<DocumentsList> {
                 }
                 final String name = 'File $offset: $nameMsg';
                 return Slidable(
-                  delegate: SlidableDrawerDelegate(),
+                  actionPane: SlidableDrawerActionPane(),
                   actionExtentRatio: .25,
                   secondaryActions: [
                     IconSlideAction(

@@ -129,7 +129,7 @@ class AppointmentsList extends StatelessWidget {
                                         }
                                         // Return a widget for the appointment since it's for the correct date.
                                         return Slidable(
-                                            delegate: SlidableDrawerDelegate(),
+                                            actionPane: SlidableDrawerActionPane(),
                                             actionExtentRatio: .25,
                                             child: Container(
                                                 margin: EdgeInsets.only(bottom: 8),

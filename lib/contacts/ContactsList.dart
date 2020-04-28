@@ -51,7 +51,7 @@ class ContactsList extends StatelessWidget {
                         "-- ContactsList.build(): avatarFile: $avatarFile -- avatarFileExists=$avatarFileExists");
                     return Column(children: [
                       Slidable(
-                          delegate: SlidableDrawerDelegate(),
+                          actionPane: SlidableDrawerActionPane(),
                           actionExtentRatio: .25,
                           child: ListTile(
                               leading: CircleAvatar(
