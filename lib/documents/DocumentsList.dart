@@ -17,7 +17,7 @@ class _DocumentsListState extends State<DocumentsList> {
   String _extension;
   FileType _pickingType;
 
-  void _openFileExplorer(BuildContext inContext, bool save) async {
+  void _openFileExplorer(BuildContext inContext, bool save, int index) async {
     try {
       _path = await FilePicker.getFilePath(
           type: _pickingType,
@@ -31,17 +31,16 @@ class _DocumentsListState extends State<DocumentsList> {
     documentsModel.entityBeingEdited = Document();
     documentsModel.setStackIndex(0);
     documentsModel.entityBeingEdited.path = _path;
+    print(_path);
     if (save) {
       _save(inContext, documentsModel);
     } else {
-      _edit(inContext, documentsModel);
+      _edit(inContext, documentsModel, index);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Set value of controllers
-
     return ScopedModel<DocumentsModel>(
         model: documentsModel,
         child: ScopedModelDescendant<DocumentsModel>(
@@ -50,7 +49,7 @@ class _DocumentsListState extends State<DocumentsList> {
             floatingActionButton: FloatingActionButton(
                 child: Icon(Icons.add, color: Colors.white),
                 onPressed: () async {
-                  _openFileExplorer(inContext, true);
+                  _openFileExplorer(inContext, true, 0);
                 }),
             body: ListView.builder(
               itemCount: documentsModel.entityList.length,
@@ -83,7 +82,7 @@ class _DocumentsListState extends State<DocumentsList> {
                         color: Colors.green,
                         icon: Icons.edit,
                         onTap: () {
-                          _openFileExplorer(inContext, false);
+                          _openFileExplorer(inContext, false, inIndex);
                         })
                   ],
                   child: new ListTile(
@@ -112,8 +111,17 @@ class _DocumentsListState extends State<DocumentsList> {
   /// TODO
   /// @param inContext The BuildContext of the parent widget.
   /// @param inModel   The NotesModel.
-  void _edit(BuildContext inContext, DocumentsModel inDocumentModel) async {
+  void _edit(BuildContext inContext, DocumentsModel inDocumentModel, int index) async {
+    inDocumentModel.entityBeingEdited.id = index + 1;
     print("-- DocumentList.edit()");
+    print("-- DocumentList._edit(): Path - ${inDocumentModel.entityBeingEdited}");
+    if (inDocumentModel.entityBeingEdited.id != null) {
+      print("################" + _path);
+      print("################" + inDocumentModel.entityBeingEdited.path);
+      print("-- DocumentsList._edit(): Creating: ${inDocumentModel.entityBeingEdited}");
+      await DocumentsDBWorker.db.update(documentsModel.entityBeingEdited);
+      // Updating an existing note.
+    }
 
     // Reload data from database to update list.
     documentsModel.loadData("documents", DocumentsDBWorker.db);
@@ -134,7 +142,7 @@ class _DocumentsListState extends State<DocumentsList> {
   /// @param inModel   The NotesModel.
   void _save(BuildContext inContext, DocumentsModel inDocumentModel) async {
     print("-- DocumentList._save()");
-    print("-- DocumentList._save() - ${documentsModel.path}");
+    print("-- DocumentList._save() - ${inDocumentModel.path}");
     // Creating a new note.
     if (inDocumentModel.entityBeingEdited.id == null) {
       print("-- DocumentsList._save(): Creating: ${inDocumentModel.entityBeingEdited}");

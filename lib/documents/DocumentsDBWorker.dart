@@ -129,7 +129,7 @@ class DocumentsDBWorker {
     print("-- document DocumentDBWorker.update(): inDocument = $inDocument");
 
     Database db = await database;
-    return await db.update("document", documentToMap(inDocument), where: "id = ?", whereArgs: [inDocument.id]);
+    return await db.update("documents", documentToMap(inDocument), where: "id = ?", whereArgs: [inDocument.id]);
   }
 
   /// Delete a documents.
