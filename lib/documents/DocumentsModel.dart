@@ -14,7 +14,7 @@ class Document {
 class DocumentsModel extends BaseModel {
   String path;
 
-  /// For display of the color chosen by the user.
+  /// For the path chosen by the user.
   ///
   /// @param inColor The color.
   void setPath(String inPath) {

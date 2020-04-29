@@ -2,10 +2,8 @@ import 'package:file_picker/file_picker.dart';
 import "package:flutter/material.dart";
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import "package:font_awesome_flutter/font_awesome_flutter.dart";
 import 'package:image_picker/image_picker.dart';
 import 'package:open_file/open_file.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 import 'DocumentsDBWorker.dart';
@@ -17,10 +15,15 @@ class DocumentsList extends StatefulWidget {
 }
 
 class _DocumentsListState extends State<DocumentsList> {
-  String _path;
-  String _extension;
+  String _path; //path of the document
+  String _extension; //extension type of the document
   FileType _pickingType;
 
+  /// Open file explorer to select a file
+  ///
+  /// @param inContext The BuildContext of the parent widget.
+  /// @param save      whether to save or edit a file
+  /// @param index     used to figure out what grid item is gonna be editted
   void _openFileExplorer(BuildContext inContext, bool save, int index) async {
     try {
       _path = await FilePicker.getFilePath(
@@ -43,6 +46,7 @@ class _DocumentsListState extends State<DocumentsList> {
     }
   }
 
+  /// Open camera to take a picture and obtain the path of the image.
   void imageSelectorCamera(BuildContext context) async {
     var imageFile = await ImagePicker.pickImage(
       source: ImageSource.camera,
@@ -55,6 +59,7 @@ class _DocumentsListState extends State<DocumentsList> {
     _save(context, documentsModel);
   }
 
+  /// Open gallery to select an image to obtain the path of the image.
   void imageSelectorGallery(BuildContext context) async {
     var imageFile1 = await ImagePicker.pickImage(
       source: ImageSource.gallery,
@@ -74,10 +79,12 @@ class _DocumentsListState extends State<DocumentsList> {
         child: ScopedModelDescendant<DocumentsModel>(
             builder: (BuildContext inContext, Widget inChild, DocumentsModel inModel) {
           return new Scaffold(
+            //Speed dial used to have multiple floating action buttons
             floatingActionButton: SpeedDial(
               animatedIcon: AnimatedIcons.menu_close,
               animatedIconTheme: IconThemeData(size: 22.0),
               children: [
+                //floating action button for file explorer
                 SpeedDialChild(
                   child: Icon(Icons.add),
                   label: "File Explorer",
@@ -85,12 +92,14 @@ class _DocumentsListState extends State<DocumentsList> {
                     _openFileExplorer(inContext, true, 0);
                   },
                 ),
+                //floating action button for camera
                 SpeedDialChild(
                     child: Icon(Icons.camera),
                     label: "Camera",
                     onTap: () {
                       imageSelectorCamera(inContext);
                     }),
+                //floating action button for gallery
                 SpeedDialChild(
                     child: Icon(Icons.image),
                     label: "Gallery",
@@ -100,6 +109,7 @@ class _DocumentsListState extends State<DocumentsList> {
               ],
             ),
             body: GridView.builder(
+              //gridview with a horizontal axis count of 2
               gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
               itemCount: documentsModel.entityList.length,
               itemBuilder: (BuildContext context, int inIndex) {
@@ -107,6 +117,8 @@ class _DocumentsListState extends State<DocumentsList> {
                 var offset = inIndex + 1;
                 var nameMsg;
                 var docPath;
+
+                //prevent a crash in case the user doesn't select a file and goes back.
                 try {
                   docPath = document.path;
                   nameMsg = document.path.split('/').last;
@@ -115,38 +127,12 @@ class _DocumentsListState extends State<DocumentsList> {
                   docPath = "This error appear because path is null or DB is corrupt";
                 }
                 final String name = 'File $offset: $nameMsg';
-                var fileExtension = document.path.split('.')[1];
-                var imageIndex = 0;
-                switch (fileExtension) {
-                  case 'png':
-                  case 'jpg':
-                  case 'bmp':
-                    imageIndex = 2;
-                    break;
-                  case 'mp3':
-                  case 'm4a':
-                  case 'ogg':
-                  case 'flac':
-                  case 'webm':
-                  case 'wma':
-                    imageIndex = 1;
-                    break;
-                  case 'gif':
-                  case 'flv':
-                  case 'mp4':
-                  case 'mpg':
-                  case 'mpeg':
-                  case '3gp':
-                    imageIndex = 3;
-                    break;
-                  default:
-                    imageIndex = 0;
-                }
-                print(imageIndex);
+
                 return Slidable(
                   actionPane: SlidableDrawerActionPane(),
                   actionExtentRatio: .25,
                   secondaryActions: [
+                    //option to delete
                     IconSlideAction(
                         caption: "Delete",
                         color: Colors.red,
@@ -154,6 +140,7 @@ class _DocumentsListState extends State<DocumentsList> {
                         onTap: () {
                           _deleteNote(inContext, document);
                         }),
+                    //option to edit
                     IconSlideAction(
                         caption: "Edit",
                         color: Colors.green,
@@ -162,15 +149,18 @@ class _DocumentsListState extends State<DocumentsList> {
                           _openFileExplorer(inContext, false, inIndex);
                         })
                   ],
+                  //visual ui for each grid item
                   child: new Container(
                     color: Colors.lightBlueAccent,
                     margin: const EdgeInsets.all(10.0),
                     child: new ListTile(
                       isThreeLine: true,
                       onLongPress: () {
+                        //optional edit when long clicking
                         _openFileExplorer(inContext, false, inIndex);
                       },
                       onTap: () {
+                        //open the grid item, different for each device, depends on current apps
                         Future<void> openFile() async {
                           var currentPath = document.path;
                           print("-- Path: $currentPath");
@@ -179,6 +169,7 @@ class _DocumentsListState extends State<DocumentsList> {
 
                         openFile();
                       },
+                      //visual text information for each grid item
                       title: new Text(
                         name,
                         style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
@@ -207,10 +198,10 @@ class _DocumentsListState extends State<DocumentsList> {
     if (inDocumentModel.entityBeingEdited.id != null) {
       print("-- DocumentsList._edit(): Creating: ${inDocumentModel.entityBeingEdited}");
       await DocumentsDBWorker.db.update(documentsModel.entityBeingEdited);
-      // Updating an existing note.
+      // Updating an existing document.
     }
 
-    // Reload data from database to update list.
+    // Reload data from database.
     documentsModel.loadData("documents", DocumentsDBWorker.db);
 
     // Go back to the list view.
@@ -237,7 +228,7 @@ class _DocumentsListState extends State<DocumentsList> {
       // Updating an existing note.
     }
 
-    // Reload data from database to update list.
+    // Reload data from database.
     documentsModel.loadData("documents", DocumentsDBWorker.db);
 
     // Go back to the list view.
@@ -288,7 +279,7 @@ class _DocumentsListState extends State<DocumentsList> {
                           backgroundColor: Colors.red,
                           duration: Duration(seconds: 2),
                           content: Text("Document Deleted")));
-                      // Reload data from database to update list.
+                      // Reload data from database.
                       documentsModel.loadData("documents", DocumentsDBWorker.db);
                     })
               ]);
